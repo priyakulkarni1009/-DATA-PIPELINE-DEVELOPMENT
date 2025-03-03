@@ -1,0 +1,106 @@
+#TASK 1
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+import sqlite3
+
+# 1. Data Extraction Phase
+def extract_data(file_path):
+    """
+    Extracts data from a CSV file using Pandas.
+    """
+    data = pd.read_csv(file_path)
+    return data
+
+# 2. Data Transformation Phase
+def transform_data(data):
+    """
+    Transforms the data by:
+    1. Handling missing values
+    2. Encoding categorical variables
+    3. Scaling numerical features
+    """
+
+    # Identify numerical and categorical columns
+    numerical_cols = data.select_dtypes(include=['number']).columns.tolist()
+    categorical_cols = data.select_dtypes(include=['object']).columns.tolist()
+
+    # Create transformers
+    numeric_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='median')),
+        ('scaler', StandardScaler())
+    ])
+
+    categorical_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='most_frequent')),
+        ('onehot', OneHotEncoder(handle_unknown='ignore'))
+    ])
+
+    # Create preprocessor
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numerical_cols),
+            ('cat', categorical_transformer, categorical_cols)
+        ])
+
+    # Fit and transform the data
+    transformed_data = preprocessor.fit_transform(data)
+    transformed_data = pd.DataFrame(transformed_data, columns=preprocessor.get_feature_names_out())
+
+    return transformed_data
+
+# 3. Data Load Phase
+def load_data(df, db_path, table_name='processed_data'):
+    """
+    Loads the transformed data into an SQLite database.
+    """
+    conn = sqlite3.connect(db_path)
+    df.to_sql(table_name, conn, if_exists='replace', index=False)
+    conn.close()
+
+def create_sample_csv(file_path):
+    """
+    Creates a sample CSV file with the provided data.
+    """
+    data = {
+        'ID': [1, 2, 3, 4, 5],
+        'Name': ['Alice', 'Bob', 'Carol', 'Dave', 'Eve'],
+        'Age': [25, 30, None, 40, 35],
+        'Salary': [50000, 60000, 55000, 75000, None],
+        'Department': ['IT', 'HR', 'IT', 'Sales', 'Marketing'],
+        'Joining_Date': ['2020-01-15', '2019-07-23', '2021-05-30', '2018-09-10', '2022-03-12'],
+        'City': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'San Francisco']
+    }
+    df = pd.DataFrame(data)
+    df.to_csv(file_path, index=False)
+
+# 4. ETL Pipeline Orchestration
+def run_etl_pipeline(csv_file, db_file):
+    """
+    Orchestrates the ETL process.
+    """
+    # Step 1: Extract
+    data = extract_data(csv_file)
+
+    # Step 2: Transform
+    transformed_data = transform_data(data)
+
+    # Step 3: Load
+    load_data(transformed_data, db_file)
+
+# Main execution
+if __name__ == "__main__":
+    # Define file paths
+    csv_file = 'employee_data.csv'
+    db_file = 'employee_data.db'
+
+    # Create sample CSV file
+    create_sample_csv(csv_file)
+
+    # Run the ETL pipeline
+    run_etl_pipeline(csv_file, db_file)
+
+    print(f"ETL pipeline complete. Data loaded into {db_file}")
