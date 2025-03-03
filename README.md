@@ -4,7 +4,7 @@ NAME: PRIYA KULKARNI
 INTERN ID: CT08RHH
 DOMAIN:DATA SCIENCE
 DURATION: 4 WEEKS
-MENTOR:
+MENTOR: SRAVANI
 
 
 1. Data Preprocessing
@@ -26,4 +26,6 @@ The final step in the pipeline is loading the transformed data into a desired fo
 
 Loading into Machine Learning Models: After preprocessing, the transformed data is fed into machine learning models. For example, using Scikit-learn’s LogisticRegression model:
 Saving the Transformed Data: If the preprocessed data needs to be saved for future use or further analysis, we can save it in formats such as CSV, Excel, or SQL databases using Pandas
+
+![Image](https://github.com/user-attachments/assets/5827cc5f-9024-4962-8002-6d55a8e7ba11)
 
